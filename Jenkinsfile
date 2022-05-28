@@ -2,24 +2,29 @@ node(){
     stage('Cloning Git') {
         checkout scm
     }
-        
+
     stage('Install dependencies') {
         nodejs('nodejs') {
-            sh 'npm start'
+            sh 'npm install -g node-gyp'
+            sh 'npm install -g npm@7.14.0'
+            sh 'npm install --save-dev node-sass@4.14.1'
+            sh 'npm ci'
+            sh 'npm install --unsafe-perm=true --allow-root --verbose'
+
             echo "Modules installed"
         }
-        
+
     }
     stage('Build') {
         nodejs('nodejs') {
-            sh 'npm run build:prod'
+           sh 'npm run build'
             echo "Build completed"
         }
-        
+
     }
 
     stage('Package Build') {
-        sh "tar -zcvf bundle.tar.gz dist/hms-angular/"
+        sh "tar -zcvf bundle.tar.gz dist/smartClean09"
     }
 
     stage('Artifacts Creation') {
@@ -33,12 +38,11 @@ node(){
     }
 }
 
-node('e2enode') {
+node('e2enode'){
     echo 'Unstash'
     unstash 'buildArtifacts'
     echo 'Artifacts copied'
-
     echo 'Copy'
-    sh "yes | sudo cp -R bundle.tar.gz /var/www/html/emr && cd /var/www/html/emr && sudo tar -xvf bundle.tar.gz"
+    sh "yes | sudo -S | cp -R bundle.tar.gz /var/www/html/hms && cd /var/www/html/hms && tar -xvf bundle.tar.gz" && rm -rf bundle.tar.gz
     echo 'Copy completed'
 }
